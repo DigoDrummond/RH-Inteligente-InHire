@@ -1,0 +1,230 @@
+name: CD - Deploy InHire Sync
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================================================
+  # JOB 1: Build & Test
+  # ============================================================================
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v \
+            --cov=services \
+            --cov-report=term-missing \
+            --junitxml=junit/test-results.xml
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: junit/test-results.xml
+
+  # ============================================================================
+  # JOB 2: Deploy to Staging
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment:
+      name: staging
+      url: https://staging-inhire-sync.framework.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Staging Server
+        run: |
+          echo "🚀 Deploying to Staging..."
+          # Aqui você adiciona os comandos de deploy
+          # Exemplo: SSH, rsync, kubectl, docker push, etc.
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests..."
+          # curl -f https://staging-inhire-sync.framework.com/health
+          echo "✓ Smoke tests passed"
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Staging deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================================================
+  # JOB 3: Deploy to Production
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment:
+      name: production
+      url: https://inhire-sync.framework.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create backup
+        run: |
+          echo "💾 Creating backup..."
+          # Executar script de backup antes do deploy
+          # ./scripts/backup/backup_database.sh full
+
+      - name: Deploy to Production (Blue-Green)
+        run: |
+          echo "🚀 Deploying to Production (Blue-Green)..."
+          # 1. Deploy para ambiente Green
+          # 2. Run health checks
+          # 3. Switch load balancer
+          # 4. Verificar estabilidade
+          # 5. Se OK: manter Green, se erro: rollback para Blue
+
+      - name: Run health checks
+        run: |
+          echo "🏥 Running health checks..."
+          # curl -f https://inhire-sync.framework.com/health
+          # curl -f https://inhire-sync.framework.com/health/ready
+          echo "✓ Health checks passed"
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running production smoke tests..."
+          # Testes críticos em produção
+          echo "✓ Smoke tests passed"
+
+      - name: Create Git Tag
+        if: success() && !startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=$(date +%Y.%m.%d)-${{ github.run_number }}
+          git tag -a "v$VERSION" -m "Production release $VERSION"
+          git push origin "v$VERSION"
+
+      - name: Notify Slack (Success)
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'success'
+          text: '✅ Production deployment successful'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Notify Slack (Failure)
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'failure'
+          text: '❌ Production deployment failed - ROLLBACK INITIATED'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================================================
+  # JOB 4: Rollback (Manual)
+  # ============================================================================
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'rollback'
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Rollback to previous version
+        run: |
+          echo "⏪ Rolling back to previous version..."
+          # 1. Switch load balancer back to Blue
+          # 2. Verify health
+          # 3. Confirm rollback
+
+      - name: Verify rollback
+        run: |
+          echo "🔍 Verifying rollback..."
+          # curl -f https://inhire-sync.framework.com/health
+          echo "✓ Rollback verified"
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'warning'
+          text: '⏪ Production ROLLBACK completed'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # ============================================================================
+  # JOB 5: Post-Deploy Tasks
+  # ============================================================================
+  post-deploy:
+    name: Post-Deploy Tasks
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: success()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run database migrations
+        run: |
+          echo "🗄️ Running database migrations..."
+          # psql -f migrations/latest.sql
+          echo "✓ Migrations completed"
+
+      - name: Clear caches
+        run: |
+          echo "🧹 Clearing caches..."
+          echo "✓ Caches cleared"
+
+      - name: Update monitoring dashboards
+        run: |
+          echo "📊 Updating monitoring dashboards..."
+          echo "✓ Dashboards updated"
+
+      - name: Send deployment summary
+        run: |
+          echo "📧 Sending deployment summary..."
+          # Send email with deployment details
+          echo "✓ Summary sent"

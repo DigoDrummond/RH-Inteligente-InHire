@@ -1,0 +1,126 @@
+# ================================================================================
+# DEPENDÊNCIAS DO PROJETO DE CIÊNCIA DE DADOS - INHIRE
+# ================================================================================
+# Data: 2026-03-05
+# Python: 3.10+
+#
+# Instalação: pip install -r requirements.txt
+# ================================================================================
+
+# ----------------------------------------
+# CORE - Manipulação de Dados
+# ----------------------------------------
+pandas==2.1.4                # Manipulação e análise de dados tabulares
+numpy==1.26.2                # Operações numéricas e arrays
+scipy==1.11.4                # Estatística e otimização
+
+# ----------------------------------------
+# DATABASE - Conexão com PostgreSQL
+# ----------------------------------------
+psycopg2-binary==2.9.9       # Adapter PostgreSQL para Python
+sqlalchemy==2.0.23           # ORM e query builder
+python-dotenv==1.0.0         # Carregar variáveis de ambiente do .env
+
+# ----------------------------------------
+# VISUALIZAÇÃO - Gráficos e Plots
+# ----------------------------------------
+matplotlib==3.8.2            # Biblioteca base de visualização
+seaborn==0.13.0              # Visualizações estatísticas elegantes
+plotly==5.18.0               # Gráficos interativos (Sankey, funil)
+plotly-express==0.4.1        # Wrapper simplificado do Plotly
+
+# ----------------------------------------
+# MACHINE LEARNING - Scikit-Learn
+# ----------------------------------------
+scikit-learn==1.3.2          # Modelos, métricas, preprocessing
+imbalanced-learn==0.11.0     # Técnicas para dados desbalanceados (SMOTE)
+
+# ----------------------------------------
+# MACHINE LEARNING - Boosting Avançado
+# ----------------------------------------
+xgboost==2.0.3               # Gradient Boosting otimizado
+lightgbm==4.1.0              # LightGBM (alternativa ao XGBoost)
+
+# ----------------------------------------
+# INTERPRETABILIDADE - Explicação de Modelos
+# ----------------------------------------
+shap==0.44.0                 # SHAP values (explicação de predições)
+
+# ----------------------------------------
+# NOTEBOOKS - Jupyter
+# ----------------------------------------
+jupyter==1.0.0               # Meta-package Jupyter
+jupyterlab==4.0.9            # Interface moderna de notebooks
+ipywidgets==8.1.1            # Widgets interativos em notebooks
+ipykernel==6.27.1            # Kernel Python para Jupyter
+
+# ----------------------------------------
+# DASHBOARD - Streamlit
+# ----------------------------------------
+streamlit==1.29.0            # Framework para dashboards interativos
+streamlit-aggrid==0.3.4.post3  # Tabelas interativas no Streamlit
+
+# ----------------------------------------
+# UTILITÁRIOS - Produtividade
+# ----------------------------------------
+tqdm==4.66.1                 # Progress bars
+joblib==1.3.2                # Serialização de modelos (save/load)
+pickle5==0.0.11              # Pickle melhorado (backward compatibility)
+
+# ----------------------------------------
+# QUALIDADE DE CÓDIGO (Opcional)
+# ----------------------------------------
+black==23.12.1               # Formatação automática de código
+flake8==7.0.0                # Linter Python
+isort==5.13.2                # Organização de imports
+
+# ----------------------------------------
+# TESTING (Opcional)
+# ----------------------------------------
+pytest==7.4.3                # Framework de testes
+pytest-cov==4.1.0            # Cobertura de testes
+
+# ================================================================================
+# NOTAS DE INSTALAÇÃO:
+# ================================================================================
+#
+# 1. CRIAR AMBIENTE VIRTUAL (RECOMENDADO):
+#    python -m venv venv
+#    venv\Scripts\activate  (Windows)
+#    source venv/bin/activate  (Linux/Mac)
+#
+# 2. INSTALAR DEPENDÊNCIAS:
+#    pip install --upgrade pip
+#    pip install -r requirements.txt
+#
+# 3. VERIFICAR INSTALAÇÃO:
+#    python -c "import pandas, sklearn, plotly; print('OK')"
+#
+# 4. CONFIGURAR JUPYTER:
+#    python -m ipykernel install --user --name=inhire_ds --display-name="Inhire DS"
+#
+# 5. INICIAR JUPYTERLAB:
+#    jupyter lab
+#    # Abrir em: http://localhost:8888
+#
+# 6. EXECUTAR DASHBOARD STREAMLIT:
+#    streamlit run dashboards/app_streamlit.py
+#    # Abrir em: http://localhost:8501
+#
+# ================================================================================
+# TROUBLESHOOTING:
+# ================================================================================
+#
+# Erro ao instalar psycopg2:
+#   - Windows: Baixar wheel pré-compilado de https://www.lfd.uci.edu/~gohlke/pythonlibs/
+#   - Alternativa: Usar psycopg2-binary (já incluído)
+#
+# Erro ao instalar XGBoost/LightGBM:
+#   - Requer Microsoft Visual C++ 14.0+ (Windows)
+#   - Download: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+#
+# Erro ao instalar SHAP:
+#   - Requer compilador C++ (mesma solução acima)
+#   - Alternativa: pip install shap --no-build-isolation
+#
+# ================================================================================

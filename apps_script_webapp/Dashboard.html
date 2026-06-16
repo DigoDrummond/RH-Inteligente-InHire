@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Posições InHire</title>
+  <?!= include('Styles'); ?>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h1>Framework</h1>
+      <p>InHire Analytics</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <a href="?page=dashboard" class="menu-item active">
+        <span class="menu-item-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="?page=busca" class="menu-item">
+        <span class="menu-item-icon">🔍</span>
+        <span>Buscar Posições</span>
+      </a>
+      <a href="?page=relatorios" class="menu-item">
+        <span class="menu-item-icon">📈</span>
+        <span>Relatórios</span>
+      </a>
+    </div>
+
+    <div class="sidebar-footer">
+      <p>Sistema InHire v1.0</p>
+      <p>© 2026 Framework Data</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <div class="header">
+        <div>
+          <h2>📊 Dashboard de Posições</h2>
+          <p class="subtitle">Visão geral do processo seletivo</p>
+        </div>
+
+        <div class="filters-container">
+          <select id="filtroCliente" class="filter-select" onchange="aplicarFiltros()">
+            <option value="">Todos os Clientes</option>
+          </select>
+
+          <select id="filtroTorre" class="filter-select" onchange="aplicarFiltros()">
+            <option value="">Todas as Torres</option>
+          </select>
+
+          <select id="filtroStatus" class="filter-select" onchange="aplicarFiltros()">
+            <option value="">Todos os Status</option>
+          </select>
+
+          <button class="btn btn-primary" onclick="limparFiltros()">🔄 Limpar Filtros</button>
+        </div>
+      </div>
+
+      <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <div>Carregando dados...</div>
+      </div>
+
+      <div id="dashboard" style="display: none;">
+        <!-- Estatísticas Principais -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #573167;">📋</div>
+            <div class="stat-content">
+              <h3>Total de Posições</h3>
+              <div class="value" id="totalPosicoes">0</div>
+              <div class="label">Todas as posições cadastradas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #2196F3;">🔓</div>
+            <div class="stat-content">
+              <h3>Posições Abertas</h3>
+              <div class="value" id="posicoesAbertas">0</div>
+              <div class="label">Em processo seletivo</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #4CAF50;">✅</div>
+            <div class="stat-content">
+              <h3>Posições Contratadas</h3>
+              <div class="value" id="posicoesContratadas">0</div>
+              <div class="label">Já preenchidas</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background: #FF9800;">⏱️</div>
+            <div class="stat-content">
+              <h3>SLA Médio Geral</h3>
+              <div class="value" id="slaGeral">0</div>
+              <div class="label">dias</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h3>🏆 Top 5 Clientes</h3>
+            <ul class="top-list" id="topClientes"></ul>
+          </div>
+
+          <div class="chart-card">
+            <h3>📊 Status Atual das Posições</h3>
+            <div id="statusPosicoes"></div>
+          </div>
+        </div>
+
+        <!-- SLA Geral por Quantidade -->
+        <div class="chart-card">
+          <h3>⏱️ Distribuição por SLA Geral (dias)</h3>
+          <div class="sla-grid" id="slaDistribuicao"></div>
+        </div>
+
+        <!-- Tabela de Posições -->
+        <div class="chart-card">
+          <h3>📋 Tabela de Posições</h3>
+          <div style="overflow-x: auto; margin-top: 20px;">
+            <table class="data-table" id="tabelaPosicoes">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Cargo</th>
+                  <th>Status</th>
+                  <th>Cliente</th>
+                  <th>Recrutadora</th>
+                  <th>Torre</th>
+                  <th>Data Pub.</th>
+                  <th>SLA Geral</th>
+                  <th>Indicador Prazo</th>
+                </tr>
+              </thead>
+              <tbody id="tabelaPosicoesBody">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let dadosOriginais = null;
+    let dadosFiltrados = null;
+
+    // Carregar dados ao abrir
+    window.addEventListener('load', function() {
+      carregarDashboard();
+    });
+
+    function carregarDashboard() {
+      google.script.run
+        .withSuccessHandler(function(data) {
+          dadosOriginais = data;
+          dadosFiltrados = data;
+          popularFiltros(data);
+          renderizarDashboard(data);
+        })
+        .withFailureHandler(mostrarErro)
+        .getDashboardData();
+    }
+
+    function popularFiltros(data) {
+      // Popular filtro de clientes
+      const filtroCliente = document.getElementById('filtroCliente');
+      const clientes = [...new Set(data.topClientes.map(c => c.nome))].sort();
+      clientes.forEach(cliente => {
+        const option = document.createElement('option');
+        option.value = cliente;
+        option.textContent = cliente;
+        filtroCliente.appendChild(option);
+      });
+
+      // Popular filtro de torres
+      const filtroTorre = document.getElementById('filtroTorre');
+      const torres = [...new Set(data.porTorre.map(t => t.nome))].sort();
+      torres.forEach(torre => {
+        const option = document.createElement('option');
+        option.value = torre;
+        option.textContent = torre || 'Não informado';
+        filtroTorre.appendChild(option);
+      });
+
+      // Popular filtro de status
+      const filtroStatus = document.getElementById('filtroStatus');
+      const statusList = data.statusDistribuicao.map(s => s.status);
+      statusList.forEach(status => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = getStatusLabel(status);
+        filtroStatus.appendChild(option);
+      });
+    }
+
+    function aplicarFiltros() {
+      const clienteSel = document.getElementById('filtroCliente').value;
+      const torreSel = document.getElementById('filtroTorre').value;
+      const statusSel = document.getElementById('filtroStatus').value;
+
+      // Aqui você pode fazer uma nova chamada ao backend com filtros
+      // Por enquanto, vou apenas re-renderizar os dados
+      renderizarDashboard(dadosOriginais);
+    }
+
+    function limparFiltros() {
+      document.getElementById('filtroCliente').value = '';
+      document.getElementById('filtroTorre').value = '';
+      document.getElementById('filtroStatus').value = '';
+      renderizarDashboard(dadosOriginais);
+    }
+
+    function renderizarDashboard(data) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+
+      // Estatísticas
+      document.getElementById('totalPosicoes').textContent = data.totalPosicoes;
+      document.getElementById('posicoesAbertas').textContent = data.posicoesAbertas;
+      document.getElementById('posicoesContratadas').textContent = data.posicoesContratadas;
+      document.getElementById('slaGeral').textContent = data.slaGeral;
+
+      // Top Clientes
+      const topClientes = document.getElementById('topClientes');
+      topClientes.innerHTML = data.topClientes.map(item => `
+        <li>
+          <span>${item.nome}</span>
+          <span class="badge">${item.quantidade}</span>
+        </li>
+      `).join('');
+
+      // Status das Posições (substituiu Top Recrutadoras)
+      const statusPosicoes = document.getElementById('statusPosicoes');
+      const maxStatus = Math.max(...data.statusDistribuicao.map(s => s.quantidade));
+      statusPosicoes.innerHTML = data.statusDistribuicao.map(item => `
+        <div style="margin-bottom: 15px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span style="font-weight: 600; color: #333;">${getStatusLabel(item.status)}</span>
+            <span style="font-weight: 600; color: #573167;">${item.quantidade}</span>
+          </div>
+          <div class="horizontal-bar" style="width: ${(item.quantidade / maxStatus * 100)}%;">
+            ${((item.quantidade / data.totalPosicoes) * 100).toFixed(1)}%
+          </div>
+        </div>
+      `).join('');
+
+      // SLA Distribuição
+      const slaDistribuicao = document.getElementById('slaDistribuicao');
+      slaDistribuicao.innerHTML = data.slaDistribuicao.map(item => `
+        <div class="sla-card">
+          <div class="sla-range">${item.range}</div>
+          <div class="sla-count">${item.quantidade}</div>
+        </div>
+      `).join('');
+
+      // Tabela de Posições
+      const tbody = document.getElementById('tabelaPosicoesBody');
+      tbody.innerHTML = data.tabelaPosicoes.slice(0, 50).map(row => `
+        <tr>
+          <td>${row.id}</td>
+          <td><strong>${row.cargo}</strong></td>
+          <td><span class="badge" style="background: ${getStatusColor(row.status)}; font-size: 11px;">${getStatusLabel(row.status)}</span></td>
+          <td>${row.cliente || '-'}</td>
+          <td>${row.recrutadora || '-'}</td>
+          <td>${row.torre || '-'}</td>
+          <td>${formatDate(row.data_publicacao)}</td>
+          <td>${row.sla_geral || '-'}</td>
+          <td>${row.indicador_prazo || '-'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function getStatusLabel(status) {
+      const labels = {
+        'open': 'Aberta',
+        'closed': 'Fechada',
+        'canceled': 'Cancelada',
+        'archived': 'Arquivada'
+      };
+      return labels[status] || status;
+    }
+
+    function getStatusColor(status) {
+      const colors = {
+        'open': '#2196F3',
+        'closed': '#4CAF50',
+        'canceled': '#F44336',
+        'archived': '#9E9E9E'
+      };
+      return colors[status] || '#999';
+    }
+
+    function formatDate(date) {
+      if (!date) return '-';
+      const d = new Date(date);
+      return d.toLocaleDateString('pt-BR');
+    }
+
+    function mostrarErro(error) {
+      document.getElementById('loading').innerHTML = `
+        <div style="color: #ff6b6b;">
+          <h3>❌ Erro ao carregar dados</h3>
+          <p>${error.message}</p>
+          <button class="btn btn-primary" onclick="location.reload()">Tentar novamente</button>
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

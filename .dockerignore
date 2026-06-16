@@ -1,0 +1,77 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+coverage.xml
+junit
+
+# Logs
+logs/*.log
+*.log
+
+# Backups
+backups/
+Backup_BD_Inhire/
+*.dump
+*.sql
+*.gz
+*.zip
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Credentials (NUNCA incluir!)
+.env
+.env.*
+credentials.json
+token.json
+*.pem
+*.key
+
+# Exports
+exports_analise/
+relatorios/
+
+# Cache
+.mypy_cache
+.ruff_cache
+
+# Build artifacts
+dist/
+build/
+*.egg-info

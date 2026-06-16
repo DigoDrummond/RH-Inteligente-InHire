@@ -1,0 +1,360 @@
+/*
+================================================================================
+MIGRATION 052: Corrigir Filtro stage_order na pessoa_contratada
+================================================================================
+
+Data: 2026-02-18
+Descrição:
+  Corrige o CTE pessoa_contratada na view vw_analise_posicoes que estava
+  retornando NULL para nome_pessoa_contratada e email_pessoal.
+
+CAUSA RAIZ IDENTIFICADA:
+  O CTE pessoa_contratada tinha o filtro adicional:
+    WHERE cd.stage_name = 'Contratação' AND cd.stage_order > 9
+
+  Este filtro excluía candidatos contratados cujo stage_order era:
+    1. NULL (candidaturas sem stage_order preenchido)
+    2. Menor ou igual a 9 (variação por cliente/processo)
+
+COMPARAÇÃO COM vw_dados_jade (que funcionava corretamente):
+  vw_dados_jade usava: WHERE c.stage_name = 'Contratação'
+  vw_analise_posicoes usava: WHERE cd.stage_name = 'Contratação' AND cd.stage_order > 9
+
+CORREÇÃO:
+  Remover o filtro AND cd.stage_order > 9 do CTE pessoa_contratada,
+  alinhando o comportamento com a vw_dados_jade.
+
+Base: Migration 050 (versão mais recente) com APENAS essa correção.
+
+================================================================================
+*/
+
+-- ============================================================================
+-- 1. RECRIAR VIEW COM CORREÇÃO DO FILTRO STAGE_ORDER
+-- ============================================================================
+
+DROP VIEW IF EXISTS vw_analise_posicoes CASCADE;
+
+CREATE OR REPLACE VIEW vw_analise_posicoes AS
+WITH ultima_etapa AS (
+    SELECT
+        cd.vaga_id,
+        cd.stage_name,
+        cd.stage_order,
+        ROW_NUMBER() OVER (PARTITION BY cd.vaga_id ORDER BY cd.stage_order DESC, cd.updated_at_inhire DESC) AS rn
+    FROM candidaturas cd
+    WHERE cd.stage_name IS NOT NULL AND cd.stage_order IS NOT NULL
+),
+pessoa_contratada AS (
+    SELECT
+        cd.vaga_id,
+        cd.talent_inhire_id,
+        t.name AS talent_name,
+        t.email AS talent_email,
+        ROW_NUMBER() OVER (PARTITION BY cd.vaga_id ORDER BY cd.updated_at_inhire DESC) AS rn
+    FROM candidaturas cd
+    INNER JOIN talentos t ON t.inhire_id = cd.talent_inhire_id
+    -- ✅ CORRIGIDO (Migration 052): Removido filtro "AND cd.stage_order > 9"
+    -- que excluía candidatos com stage_order NULL ou <= 9.
+    -- Alinhado com vw_dados_jade que usa apenas stage_name = 'Contratação'.
+    WHERE cd.stage_name = 'Contratação'
+),
+ultimo_status_posicao AS (
+    SELECT DISTINCT ON (posicao_id)
+        posicao_id,
+        new_status,
+        changed_at AS data_ultima_mudanca
+    FROM position_timeline
+    ORDER BY posicao_id, changed_at DESC
+),
+eventos_pausa AS (
+    SELECT DISTINCT
+        posicao_id,
+        changed_at,
+        previous_status,
+        new_status,
+        CASE
+            WHEN (previous_status = 'open' OR previous_status IS NULL) AND new_status = 'paused'
+                THEN 'INICIO_PAUSA'
+            WHEN previous_status = 'paused' AND new_status IN ('open', 'canceled', 'closed')
+                THEN 'FIM_PAUSA'
+            ELSE 'OUTRO'
+        END AS tipo_evento
+    FROM position_timeline
+    WHERE
+        ((previous_status = 'open' OR previous_status IS NULL) AND new_status = 'paused')
+        OR (previous_status = 'paused' AND new_status IN ('open', 'canceled', 'closed'))
+),
+periodos_pausa AS (
+    SELECT
+        inicio.posicao_id,
+        inicio.changed_at AS data_inicio,
+        COALESCE(
+            (SELECT MIN(fim.changed_at)
+             FROM eventos_pausa fim
+             WHERE fim.posicao_id = inicio.posicao_id
+               AND fim.tipo_evento = 'FIM_PAUSA'
+               AND fim.changed_at > inicio.changed_at
+            ),
+            CURRENT_TIMESTAMP
+        ) AS data_fim
+    FROM eventos_pausa inicio
+    WHERE inicio.tipo_evento = 'INICIO_PAUSA'
+),
+periodos_unicos AS (
+    SELECT DISTINCT
+        posicao_id,
+        data_inicio,
+        data_fim
+    FROM periodos_pausa
+),
+pendencias_posicao AS (
+    SELECT
+        posicao_id,
+        SUM(calcular_dias_uteis(DATE(data_inicio), DATE(data_fim))) AS total_dias_pausado,
+        MIN(data_inicio) AS primeira_pausa,
+        MAX(data_fim) AS ultima_retomada,
+        COUNT(*) AS num_ciclos,
+        STRING_AGG(TO_CHAR(data_inicio, 'DD/MM/YYYY'), '; ' ORDER BY data_inicio) AS datas_inicio_pausa,
+        STRING_AGG(
+            CASE
+                WHEN data_fim::date = CURRENT_DATE THEN 'Em andamento'
+                ELSE TO_CHAR(data_fim, 'DD/MM/YYYY')
+            END,
+            '; '
+            ORDER BY data_inicio
+        ) AS datas_fim_pausa,
+        STRING_AGG(
+            TO_CHAR(data_inicio, 'DD/MM/YYYY') || ' a ' ||
+            CASE
+                WHEN data_fim::date = CURRENT_DATE THEN 'Hoje'
+                ELSE TO_CHAR(data_fim, 'DD/MM/YYYY')
+            END ||
+            ' (' || calcular_dias_uteis(DATE(data_inicio), DATE(data_fim))::text || 'd úteis)',
+            '; '
+            ORDER BY data_inicio
+        ) AS detalhamento_periodos
+    FROM periodos_unicos
+    GROUP BY posicao_id
+)
+SELECT
+    -- 1. ID
+    p.id AS id_position,
+
+    -- 2. Cargo
+    v.name AS cargo,
+
+    -- 3. Data de abertura
+    DATE(r.requested_at) AS data_abertura,
+
+    -- 4. Data da publicação
+    DATE(p.opened_at) AS data_publicacao,
+
+    -- 5. Prazo do Processo Seletivo
+    v.sla_days_goal AS prazo_processo_seletivo,
+
+    -- 6. Cliente
+    c.name AS cliente,
+
+    -- 7. Torre
+    v.custom_fields->>'Torre' AS torre,
+
+    -- 8. Status
+    COALESCE(usp.new_status, p.status) AS status_atual,
+
+    -- 9. Data de Encerramento
+    CASE
+        WHEN COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at)) >= DATE(p.opened_at)
+        THEN COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at))
+        ELSE NULL
+    END AS data_encerramento_ou_atualizacao,
+
+    -- 10. Motivo de cancelamento/paralisação
+    v.custom_fields->>'Motivo de Cancelamento' AS motivo_cancelamento_paralisacao,
+
+    -- 11. Etapa Funil
+    ue.stage_name AS etapa_funil,
+
+    -- 12. Senioridade
+    COALESCE(v.custom_fields->>'Senioridade', v.seniority::text) AS senioridade,
+
+    -- 13. Motivo de contratação (TRADUZIDO - Migration 047)
+    CASE p.reason
+        WHEN 'expansion' THEN 'Aumento de quadro'
+        WHEN 'replacement' THEN 'Substituição'
+        WHEN 'other' THEN 'Outros'
+        WHEN 'new-position' THEN 'Nova posição'
+        WHEN 'turnover' THEN 'Turnover'
+        WHEN 'internal-transfer' THEN 'Transferência interna'
+        ELSE p.reason
+    END AS motivo_contratacao,
+
+    -- 14. Modalidade de Contratação (de vagas.custom_fields)
+    v.custom_fields->>'Modalidade de Contratação' AS modalidade_contratacao,
+
+    -- 15. Pessoa a Ser Substituida
+    v.custom_fields->>'Se substituição, informar o nome do colaborador: ' AS pessoa_substituida,
+
+    -- 16. Responsável
+    COALESCE(v.custom_fields->>'Gestor', r.user_name) AS responsavel,
+
+    -- 17. Email Responsável Cliente (Migration 048)
+    get_custom_field_value(r.custom_fields, 'Email do responsável por parte do cliente') AS email_responsavel_cliente,
+
+    -- 18. Recrutador da vaga
+    v.user_name AS recrutador_vaga,
+
+    -- 19. Inicio Pendência com Cliente
+    pp.datas_inicio_pausa AS inicio_pendencia_cliente,
+
+    -- 20. Fim Pendência com Cliente
+    pp.datas_fim_pausa AS fim_pendencia_cliente,
+
+    -- 21. SLA Pendência Cliente (dias úteis - Migration 050)
+    pp.total_dias_pausado AS sla_pendencia_cliente,
+
+    -- 22. Num Ciclos Pausa
+    pp.num_ciclos AS num_ciclos_pausa,
+
+    -- 23. Detalhamento Pausas
+    pp.detalhamento_periodos AS detalhamento_pausas,
+
+    -- 24. SLA Recrutamento (dias úteis = sla_geral - sla_pendencia_cliente - Migration 050)
+    CASE
+        WHEN COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at)) >= DATE(p.opened_at)
+             AND (usp.data_ultima_mudanca IS NOT NULL OR p.hired_at IS NOT NULL)
+        THEN
+            calcular_dias_uteis(
+                DATE(COALESCE(r.requested_at, p.opened_at)),
+                COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at))
+            )
+            - COALESCE(pp.total_dias_pausado, 0)
+        ELSE NULL
+    END AS sla_recrutamento,
+
+    -- 25. Nome da Pessoa Contratada (CORRIGIDO - Migration 052)
+    pct.talent_name AS nome_pessoa_contratada,
+
+    -- 26. E-mail Pessoal (CORRIGIDO - Migration 052)
+    pct.talent_email AS email_pessoal,
+
+    -- 27. Modalidade de Contratação Requisição (Migration 049)
+    get_custom_field_value(r.custom_fields, 'Modalidade de Contratação') AS modalidade_contratacao_req,
+
+    -- 28. SLA Geral (dias úteis - Migration 050)
+    CASE
+        WHEN COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at)) >= DATE(p.opened_at)
+             AND (usp.data_ultima_mudanca IS NOT NULL OR p.hired_at IS NOT NULL)
+        THEN
+            calcular_dias_uteis(
+                DATE(COALESCE(r.requested_at, p.opened_at)),
+                COALESCE(DATE(usp.data_ultima_mudanca), DATE(p.hired_at))
+            )
+        ELSE NULL
+    END AS sla_geral,
+
+    -- 29. Meta Recrutamento (indicador_prazo)
+    CASE
+        WHEN v.sla_days_goal IS NOT NULL
+            AND p.hired_at IS NOT NULL
+            AND DATE(p.hired_at) >= DATE(p.opened_at)
+        THEN
+            CASE
+                WHEN calcular_dias_uteis(DATE(p.opened_at), DATE(p.hired_at)) <= v.sla_days_goal
+                THEN 'Dentro do Prazo'
+                ELSE 'Fora do Prazo'
+            END
+        ELSE 'Sem Meta Definida'
+    END AS indicador_prazo,
+
+    -- 30. Empresa (Time Rethink) (Migration 049)
+    get_custom_field_value(r.custom_fields, 'Time Rethink') AS empresa,
+
+    -- 31. Tipo de Posição (Migration 049)
+    get_custom_field_value(r.custom_fields, 'Tipo de Posição') AS tipo_posicao
+
+FROM posicoes p
+    INNER JOIN vagas v ON p.vaga_id = v.id
+    LEFT JOIN requisicoes r ON r.job_inhire_id = v.inhire_id
+    LEFT JOIN clientes c ON c.inhire_id = v.tenant_client_id
+    LEFT JOIN ultima_etapa ue ON ue.vaga_id = p.vaga_id AND ue.rn = 1
+    LEFT JOIN pessoa_contratada pct ON pct.vaga_id = p.vaga_id AND pct.rn = 1
+    LEFT JOIN pendencias_posicao pp ON pp.posicao_id = p.id
+    LEFT JOIN ultimo_status_posicao usp ON usp.posicao_id = p.id
+WHERE p.vaga_id NOT IN (114, 99, 479, 88, 680)
+    AND (v.custom_fields->>'Tipo' IS NULL OR v.custom_fields->>'Tipo' != 'Banco de Talentos')
+ORDER BY p.opened_at DESC NULLS LAST;
+
+-- ============================================================================
+-- COMENTÁRIOS
+-- ============================================================================
+
+COMMENT ON VIEW vw_analise_posicoes IS
+'View FINAL para análise de posições - Migration 052 (2026-02-18).
+31 campos. Histórico:
+  - 047: tradução motivo_contratacao
+  - 048: email_responsavel_cliente
+  - 049: modalidade_contratacao_req, empresa, tipo_posicao
+  - 050: SLAs em dias úteis
+  - 052: CORRIGIDO nome_pessoa_contratada e email_pessoal (removido filtro stage_order > 9)';
+
+COMMENT ON COLUMN vw_analise_posicoes.nome_pessoa_contratada IS
+'Nome do candidato na etapa Contratação. CORRIGIDO em Migration 052: removido filtro stage_order > 9 que excluía candidatos com stage_order NULL ou baixo.';
+
+COMMENT ON COLUMN vw_analise_posicoes.email_pessoal IS
+'E-mail do candidato contratado (talentos.email). CORRIGIDO em Migration 052: removido filtro stage_order > 9.';
+
+
+-- ============================================================================
+-- VALIDAÇÃO
+-- ============================================================================
+
+DO $$
+DECLARE
+    v_total INTEGER;
+    v_com_nome INTEGER;
+    v_com_email INTEGER;
+    v_contratadas INTEGER;
+    v_pct_cobertura NUMERIC;
+BEGIN
+    SELECT COUNT(*) INTO v_total FROM vw_analise_posicoes;
+
+    SELECT COUNT(*) INTO v_contratadas
+    FROM vw_analise_posicoes
+    WHERE status_atual IN ('closed', 'hired');
+
+    SELECT COUNT(*) INTO v_com_nome
+    FROM vw_analise_posicoes
+    WHERE nome_pessoa_contratada IS NOT NULL;
+
+    SELECT COUNT(*) INTO v_com_email
+    FROM vw_analise_posicoes
+    WHERE email_pessoal IS NOT NULL;
+
+    v_pct_cobertura := CASE WHEN v_total > 0
+        THEN ROUND((v_com_nome::numeric / v_total * 100), 1)
+        ELSE 0 END;
+
+    RAISE NOTICE '================================================================================';
+    RAISE NOTICE 'MIGRATION 052 - CORRECAO nome_pessoa_contratada / email_pessoal';
+    RAISE NOTICE '================================================================================';
+    RAISE NOTICE '';
+    RAISE NOTICE 'Total de posicoes na view: %', v_total;
+    RAISE NOTICE 'Posicoes contratadas (closed/hired): %', v_contratadas;
+    RAISE NOTICE '';
+    RAISE NOTICE 'RESULTADOS APOS CORRECAO:';
+    RAISE NOTICE '  nome_pessoa_contratada preenchido: % (%.1f%% do total)',
+        v_com_nome,
+        CASE WHEN v_total > 0 THEN (v_com_nome::float / v_total * 100) ELSE 0 END;
+    RAISE NOTICE '  email_pessoal preenchido: % (%.1f%% do total)',
+        v_com_email,
+        CASE WHEN v_total > 0 THEN (v_com_email::float / v_total * 100) ELSE 0 END;
+    RAISE NOTICE '';
+    RAISE NOTICE 'CORRECAO APLICADA:';
+    RAISE NOTICE '  ANTES: WHERE stage_name = ''Contratacao'' AND stage_order > 9';
+    RAISE NOTICE '  AGORA: WHERE stage_name = ''Contratacao''';
+    RAISE NOTICE '';
+    RAISE NOTICE 'Se nome_pessoa_contratada ainda retornar poucos resultados,';
+    RAISE NOTICE 'verificar se talentos.email esta sendo populado durante sync.';
+    RAISE NOTICE '================================================================================';
+END $$;

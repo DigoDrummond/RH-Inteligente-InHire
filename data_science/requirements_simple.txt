@@ -1,0 +1,28 @@
+# Requirements simplificados para Python 3.14 (sem versões exatas)
+
+# CORE - Manipulação de Dados
+pandas
+numpy
+scipy
+
+# DATABASE - Conexão com PostgreSQL
+psycopg2-binary
+sqlalchemy
+python-dotenv
+
+# VISUALIZAÇÃO - Gráficos
+matplotlib
+seaborn
+plotly
+
+# MACHINE LEARNING
+scikit-learn
+
+# NOTEBOOKS - Jupyter
+jupyter
+jupyterlab
+ipywidgets
+ipykernel
+
+# UTILITÁRIOS
+tqdm

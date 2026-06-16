@@ -1,0 +1,155 @@
+# Alertmanager Configuration - InHire Sync
+# Define como e para onde enviar alertas
+
+global:
+  # Tempo de resolução padrão
+  resolve_timeout: 5m
+
+  # Configuração Slack (opcional)
+  slack_api_url: 'YOUR_SLACK_WEBHOOK_URL_HERE'
+
+# Templates de mensagens
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Roteamento de alertas
+route:
+  # Agrupamento de alertas
+  group_by: ['alertname', 'severity', 'component']
+
+  # Tempo de espera antes de enviar grupo de alertas
+  group_wait: 30s
+
+  # Tempo entre notificações do mesmo grupo
+  group_interval: 5m
+
+  # Tempo antes de reenviar alerta não resolvido
+  repeat_interval: 4h
+
+  # Receptor padrão
+  receiver: 'default'
+
+  # Rotas específicas
+  routes:
+    # Alertas críticos - notificação imediata
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 10s
+      repeat_interval: 30m
+      continue: true  # Continua para outros receivers
+
+    # Alertas de warning - notificação agrupada
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 2m
+      repeat_interval: 2h
+
+    # Alertas informativos - notificação diária
+    - match:
+        severity: info
+      receiver: 'info-alerts'
+      group_wait: 5m
+      repeat_interval: 24h
+
+# Receivers (destinos dos alertas)
+receivers:
+  # Receptor padrão
+  - name: 'default'
+    email_configs:
+      - to: 'devops@framework.com'
+        from: 'alertmanager@framework.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: 'alertmanager@framework.com'
+        auth_password: 'YOUR_PASSWORD_HERE'
+        headers:
+          Subject: '[InHire Sync] {{ .GroupLabels.alertname }}'
+
+  # Alertas críticos - múltiplos canais
+  - name: 'critical-alerts'
+    # Email
+    email_configs:
+      - to: 'devops@framework.com, cto@framework.com'
+        from: 'alertmanager@framework.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: 'alertmanager@framework.com'
+        auth_password: 'YOUR_PASSWORD_HERE'
+        headers:
+          Subject: '🚨 [CRÍTICO] InHire Sync - {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          Alerta: {{ .Labels.alertname }}
+          Severidade: {{ .Labels.severity }}
+          Componente: {{ .Labels.component }}
+          Descrição: {{ .Annotations.description }}
+          {{ end }}
+
+    # Slack
+    slack_configs:
+      - channel: '#inhire-alerts'
+        title: '🚨 Alerta Crítico - InHire Sync'
+        text: |
+          *Alerta:* {{ .GroupLabels.alertname }}
+          *Severidade:* {{ .GroupLabels.severity }}
+          *Componente:* {{ .GroupLabels.component }}
+          {{ range .Alerts }}
+          *Descrição:* {{ .Annotations.description }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    # PagerDuty (opcional - para plantão 24/7)
+    # pagerduty_configs:
+    #   - service_key: 'YOUR_PAGERDUTY_KEY'
+    #     description: '{{ .GroupLabels.alertname }}'
+
+  # Alertas de warning
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#inhire-monitoring'
+        title: '⚠️ Alerta - InHire Sync'
+        text: |
+          *Alerta:* {{ .GroupLabels.alertname }}
+          *Severidade:* warning
+          {{ range .Alerts }}
+          *Descrição:* {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+  # Alertas informativos
+  - name: 'info-alerts'
+    slack_configs:
+      - channel: '#inhire-monitoring'
+        title: 'ℹ️ Informação - InHire Sync'
+        text: |
+          *Alerta:* {{ .GroupLabels.alertname }}
+          {{ range .Alerts }}
+          *Descrição:* {{ .Annotations.description }}
+          {{ end }}
+        color: 'good'
+        send_resolved: true
+
+# Inibição de alertas (evita spam)
+inhibit_rules:
+  # Se database está down, não alertar sobre sync
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      component: 'sync'
+    equal: ['instance']
+
+  # Se API está down, não alertar sobre sync
+  - source_match:
+      alertname: 'InhireAPIDown'
+    target_match:
+      component: 'sync'
+    equal: ['instance']
+
+  # Crítico inibe warning do mesmo alerta
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

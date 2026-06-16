@@ -1,0 +1,133 @@
+# Configuração de Alertas - InHire Sync
+# Prometheus Alertmanager
+
+groups:
+  - name: inhire_sync_critical
+    interval: 1m
+    rules:
+      # Sincronização falhou
+      - alert: SyncFailed
+        expr: sync_status{status="ERROR"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          component: sync
+        annotations:
+          summary: "Sincronização InHire falhou"
+          description: "Última sincronização terminou com erro. Tipo: {{ $labels.sync_type }}"
+
+      # Database indisponível
+      - alert: DatabaseDown
+        expr: health_check_status{check="database"} == 2
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Banco de dados PostgreSQL indisponível"
+          description: "Health check do banco falhou por 2 minutos consecutivos"
+
+      # API InHire indisponível
+      - alert: InhireAPIDown
+        expr: health_check_status{check="inhire_api"} == 2
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API InHire indisponível"
+          description: "Falha na autenticação com API InHire por 5 minutos"
+
+  - name: inhire_sync_warnings
+    interval: 5m
+    rules:
+      # Sincronização muito lenta
+      - alert: SyncDurationHigh
+        expr: sync_duration_seconds{sync_type="INCREMENTAL"} > 1800
+        for: 10m
+        labels:
+          severity: warning
+          component: sync
+        annotations:
+          summary: "Sincronização incremental muito lenta"
+          description: "Sync incremental levou {{ $value }}s (esperado: ~570s)"
+
+      # Dados desatualizados
+      - alert: DataStale
+        expr: last_sync_age_hours > 3
+        for: 15m
+        labels:
+          severity: warning
+          component: sync
+        annotations:
+          summary: "Dados desatualizados"
+          description: "Última sincronização há {{ $value }} horas (esperado: < 2h)"
+
+      # Disco quase cheio
+      - alert: DiskSpaceHigh
+        expr: disk_usage_pct > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Espaço em disco baixo"
+          description: "Uso do disco em {{ $value }}% (limite: 80%)"
+
+      # Memória alta
+      - alert: MemoryUsageHigh
+        expr: memory_usage_pct > 85
+        for: 15m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Uso de memória alto"
+          description: "Memória em {{ $value }}% (limite: 85%)"
+
+      # CPU alta
+      - alert: CPUUsageHigh
+        expr: cpu_usage_pct > 90
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Uso de CPU alto"
+          description: "CPU em {{ $value }}% por mais de 10 minutos"
+
+  - name: inhire_sync_performance
+    interval: 10m
+    rules:
+      # Latência do banco alta
+      - alert: DatabaseLatencyHigh
+        expr: database_latency_ms > 100
+        for: 15m
+        labels:
+          severity: info
+          component: database
+        annotations:
+          summary: "Latência do banco de dados alta"
+          description: "Latência média: {{ $value }}ms (esperado: < 100ms)"
+
+      # Taxa de erros alta
+      - alert: HighErrorRate
+        expr: rate(sync_errors_total[5m]) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          component: sync
+        annotations:
+          summary: "Taxa de erros de sincronização alta"
+          description: "Taxa de erro: {{ $value | humanizePercentage }}"
+
+      # Pool de conexões esgotado
+      - alert: DatabasePoolExhausted
+        expr: db_connection_pool_size{state="checked_out"} / db_connection_pool_size{state="size"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Pool de conexões quase esgotado"
+          description: "{{ $value | humanizePercentage }} do pool em uso"

@@ -1,0 +1,210 @@
+{
+  "dashboard": {
+    "title": "InHire Sync - Overview",
+    "tags": ["inhire", "sync"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Sync Success Rate (24h)",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(rate(sync_total{status=\"SUCCESS\"}[24h])) / sum(rate(sync_total[24h])) * 100"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value_and_name",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "red"},
+                {"value": 95, "color": "yellow"},
+                {"value": 99, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Last Sync",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "(time() - max(sync_last_success_timestamp)) / 60"
+          }
+        ],
+        "options": {
+          "textMode": "value_and_name"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "m",
+            "thresholds": {
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 120, "color": "yellow"},
+                {"value": 360, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Records Processed Today",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "sum(increase(sync_records_processed_total[24h]))"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Active Alerts",
+        "type": "stat",
+        "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "count(ALERTS{alertstate=\"firing\"})"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "thresholds": {
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 1, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Sync Duration by Type",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "avg(sync_duration_seconds) by (sync_type)",
+            "legendFormat": "{{sync_type}}"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Duration"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Records Processed per Sync",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(sync_records_processed_total[5m])",
+            "legendFormat": "Records/min"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Database Latency (p95)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 12, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, database_latency_ms)"
+          }
+        ],
+        "yaxes": [
+          {"format": "ms"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "API Latency by Endpoint",
+        "type": "graph",
+        "gridPos": {"x": 8, "y": 12, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "avg(api_latency_seconds) by (endpoint)",
+            "legendFormat": "{{endpoint}}"
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "System Resources",
+        "type": "graph",
+        "gridPos": {"x": 16, "y": 12, "w": 8, "h": 6},
+        "targets": [
+          {
+            "expr": "cpu_usage_pct",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "memory_usage_pct",
+            "legendFormat": "Memory %"
+          },
+          {
+            "expr": "disk_usage_pct",
+            "legendFormat": "Disk %"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Sync Operations by Status",
+        "type": "piechart",
+        "gridPos": {"x": 0, "y": 18, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "sum by (operation) (sync_operations_total)",
+            "legendFormat": "{{operation}}"
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Error Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 18, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(sync_errors_total[5m])",
+            "legendFormat": "Errors/min"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {"type": "gt", "params": [0.05]},
+              "operator": {"type": "and"},
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"}
+            }
+          ],
+          "name": "High Error Rate"
+        }
+      }
+    ]
+  }
+}
