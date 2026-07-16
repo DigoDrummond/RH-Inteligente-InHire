@@ -1,0 +1,16 @@
+﻿Data/Hora,Vaga,Candidato ID,Etapa Anterior,Nova Etapa,Tipo de Etapa,Fase,Usuario
+25/06/2026 18:02:04,Desenvolvedor Full Stack Senior,talent-003-def,Proposta,Contratado,default,interview,Recrutador 2
+25/06/2026 17:57:04,Analista de Dados Pleno,talent-005-def,Triagem,Entrevista RH,default,screening,Recrutador 1
+25/06/2026 17:52:04,Designer UX/UI,talent-004-def,Proposta,Contratado,default,interview,Recrutador 3
+25/06/2026 17:47:04,Designer UX/UI,talent-002-def,Teste Tecnico,Reprovado,default,interview,Recrutador 1
+25/06/2026 17:42:04,Analista de Dados Pleno,talent-009-def,Triagem,Entrevista RH,default,screening,Recrutador 1
+25/06/2026 17:37:04,Analista de Dados Pleno,talent-003-def,Teste Tecnico,Reprovado,default,interview,Recrutador 4
+25/06/2026 17:32:04,Analista de Dados Pleno,talent-007-def,Proposta,Contratado,default,interview,Recrutador 5
+25/06/2026 17:27:04,Desenvolvedor Full Stack Senior,talent-004-def,Entrevista RH,Teste Tecnico,default,interview,Recrutador 5
+25/06/2026 17:22:04,Desenvolvedor Full Stack Senior,talent-001-def,Entrevista Tecnica,Proposta,default,interview,Recrutador 3
+25/06/2026 17:17:04,Designer UX/UI,talent-009-def,Triagem,Entrevista RH,default,screening,Recrutador 2
+25/06/2026 17:12:04,Analista de Dados Pleno,talent-001-def,Triagem,Reprovado,default,interview,Recrutador 5
+25/06/2026 17:07:04,Designer UX/UI,talent-006-def,Proposta,Contratado,default,interview,Recrutador 2
+25/06/2026 17:02:04,Desenvolvedor Full Stack Senior,talent-007-def,Entrevista Tecnica,Proposta,default,interview,Recrutador 5
+25/06/2026 16:57:04,Designer UX/UI,talent-002-def,Triagem,Entrevista RH,default,screening,Recrutador 2
+25/06/2026 16:52:04,Analista de Dados Pleno,talent-002-def,Entrevista Tecnica,Proposta,default,interview,Recrutador 4

@@ -1,0 +1,4 @@
+﻿Data/Hora,Tipo de Evento,Status,Payload (resumo),Erro
+26/06/2026 07:50:55,erro_geral,failed,{},'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>
+26/06/2026 07:51:23,erro_auth,failed,{},Token invalido
+26/06/2026 07:51:44,erro_auth,failed,{},Token invalido

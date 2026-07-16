@@ -1,0 +1,11 @@
+﻿Data/Hora,Vaga,Vaga ID,Candidato ID,Etapa Inicial,Origem,LinkedIn,Localizacao,Pretensao Salarial,Modelo de Trabalho,Usuario
+25/06/2026 18:02:04,Desenvolvedor Full Stack Senior,job-001-abc,talent-001-def,Triagem,career-page,candidato1,"Brasilia, DF",8252,onsite,Recrutador 3
+25/06/2026 17:52:04,Designer UX/UI,job-002-abc,talent-002-def,Triagem,career-page,candidato2,"Belo Horizonte, MG",11715,hybrid,Recrutador 4
+25/06/2026 17:42:04,Analista de Dados Pleno,job-003-abc,talent-003-def,Triagem,career-page,candidato3,"Rio de Janeiro, RJ",14670,hybrid,Recrutador 2
+25/06/2026 17:32:04,Engenheiro DevOps,job-004-abc,talent-004-def,Triagem,linkedin,candidato4,"Belo Horizonte, MG",4556,hybrid,Recrutador 4
+25/06/2026 17:22:04,Product Manager,job-005-abc,talent-005-def,Triagem,career-page,candidato5,"Brasilia, DF",4620,remote,Recrutador 1
+25/06/2026 17:12:04,Designer UX/UI,job-006-abc,talent-006-def,Triagem,indeed,candidato6,"Rio de Janeiro, RJ",4708,hybrid,Recrutador 3
+25/06/2026 17:02:04,Analista de Dados Pleno,job-007-abc,talent-007-def,Triagem,referral,candidato7,"Sao Paulo, SP",10522,remote,Recrutador 3
+25/06/2026 16:52:04,Product Manager,job-008-abc,talent-008-def,Triagem,linkedin,candidato8,"Sao Paulo, SP",4703,onsite,Recrutador 4
+25/06/2026 16:42:04,Desenvolvedor Full Stack Senior,job-009-abc,talent-009-def,Triagem,career-page,candidato9,"Rio de Janeiro, RJ",14703,onsite,Recrutador 4
+25/06/2026 16:32:04,Designer UX/UI,job-010-abc,talent-010-def,Triagem,referral,candidato10,"Sao Paulo, SP",13163,hybrid,Recrutador 3

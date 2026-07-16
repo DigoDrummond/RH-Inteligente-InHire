@@ -1,0 +1,7 @@
+﻿Data/Hora,Titulo,Requisicao ID,Status Anterior,Novo Status,Usuario
+25/06/2026 18:02:04,Desenvolvedor Mobile React Native,req-001-xyz,approved,canceled,Gestor 2
+23/06/2026 18:02:04,Analista de Marketing Digital,req-002-xyz,pending,approved,Gestor 2
+21/06/2026 18:02:04,Coordenador de Projetos,req-003-xyz,pending,rejected,Gestor 3
+19/06/2026 18:02:04,Assistente Administrativo,req-004-xyz,approved,canceled,Gestor 1
+17/06/2026 18:02:04,Especialista em Cloud AWS,req-005-xyz,pending,approved,Gestor 1
+15/06/2026 18:02:04,Tech Lead Backend,req-006-xyz,approved,canceled,Gestor 2

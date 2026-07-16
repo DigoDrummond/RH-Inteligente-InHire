@@ -1,0 +1,9 @@
+﻿Data/Hora,Vaga ID,Candidato ID,Tipo,Titulo,Aprovado?,Acertos,Total,% Acerto
+25/06/2026 18:02:04,job-010-abc,talent-003-def,subscription,Triagem Tecnica JavaScript,Nao,3,5,60.0%
+25/06/2026 17:02:04,job-004-abc,talent-005-def,subscription,Avaliacao Cultural,Nao,2,5,40.0%
+25/06/2026 16:02:04,job-001-abc,talent-008-def,subscription,Triagem Tecnica JavaScript,Nao,8,12,66.7%
+25/06/2026 15:02:04,job-008-abc,talent-004-def,subscription,Triagem Tecnica Python,Nao,6,11,54.5%
+25/06/2026 14:02:04,job-001-abc,talent-007-def,subscription,Teste de Ingles,Nao,4,7,57.1%
+25/06/2026 13:02:04,job-006-abc,talent-005-def,subscription,Avaliacao Cultural,Nao,1,10,10.0%
+25/06/2026 12:02:04,job-002-abc,talent-007-def,subscription,Teste de Ingles,Nao,1,6,16.7%
+25/06/2026 11:02:04,job-005-abc,talent-002-def,subscription,Avaliacao Cultural,Nao,10,15,66.7%
