@@ -48,7 +48,7 @@ class VagaAPI(BaseModel):
     sla: Optional[int] = None
     slaDaysGoal: Optional[int] = None
     activeTalents: Optional[int] = 0
-    openPositions: Optional[str] = None
+    openPositions: Optional[int] = None
     userId: Optional[str] = None
     userName: Optional[str] = None
     managerId: Optional[str] = None

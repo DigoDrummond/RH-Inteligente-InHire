@@ -214,16 +214,30 @@ class InhireAPIClient(IAPIClient):
         """
         Itera sobre todos os talentos
 
-        NOTA: A API do InHire mudou e não aceita mais os parametros limit, orderBy e filter.
-        Esses parâmetros são mantidos apenas para compatibilidade com código existente,
-        mas são ignorados.
+        LIMITAÇÃO DA API (2026-06-23):
+        - A API retorna no máximo ~3.846 talentos por requisição
+        - Usando filtro updatedAt desde 2000-01-01 conseguimos máximo de talentos
+        - Total no tenant: ~94.612 talentos
+        - Acessível via API: ~3.846 talentos (4%)
+        - Para 100% de cobertura: contactar suporte Inhire
+
+        NOTA: Os parâmetros limit e filter_dict são ignorados.
+        O filtro otimizado é aplicado internamente.
         """
         start_key = None
 
         while True:
-            # API nova: payload vazio para primeira página,
-            # ou só exclusiveStartKey (como objeto) para páginas seguintes
-            data = {}
+            # Payload otimizado para máximo de talentos (3.846 vs 498)
+            data = {
+                "filter": {
+                    "updatedAt": "2000-01-01T00:00:00.000Z"
+                },
+                "orderBy": {
+                    "field": "updatedAt",
+                    "direction": "asc"
+                }
+            }
+
             if start_key:
                 data["exclusiveStartKey"] = start_key
 

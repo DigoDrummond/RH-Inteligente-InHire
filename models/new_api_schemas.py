@@ -165,7 +165,7 @@ class JobDetailsAPI(BaseModel):
     salaryMax: Optional[float] = None
     acceptedSeniority: Optional[List[str]] = None
     activeTalents: int = 0
-    openPositions: Optional[str] = None
+    openPositions: Optional[int] = None
     userId: Optional[str] = None
     userName: Optional[str] = None
     managerId: Optional[str] = None
