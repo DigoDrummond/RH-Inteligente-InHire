@@ -1,0 +1,113 @@
+[
+  {
+    "tenantId": "frameworkdigital",
+    "requiredIn": [],
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "conditions": [],
+    "updatedAt": "2025-06-17T19:56:06Z",
+    "createdAt": "2025-06-17T19:56:06Z",
+    "id": "4a2af968-b11c-48a5-bdc9-7cbb369224cc",
+    "type": "select",
+    "order": 3,
+    "name": "Onde conheceu a Framework?",
+    "entity": "TALENTS",
+    "required": false,
+    "options": [
+      {
+        "value": "Linkedin",
+        "id": "477d43bf-d611-41c3-ab4c-965037d31adc",
+        "label": "Linkedin"
+      },
+      {
+        "value": "Instagram",
+        "id": "94602583-1bf5-4382-b381-760748de79de",
+        "label": "Instagram"
+      },
+      {
+        "value": "Google",
+        "id": "009f3373-af7c-4153-8141-6c689cf8c370",
+        "label": "Google"
+      },
+      {
+        "value": "Instituições de Ensino",
+        "id": "275df3b4-df1a-4d16-920b-49b394d513c6",
+        "label": "Instituições de Ensino"
+      },
+      {
+        "value": "Eventos",
+        "id": "2e76ee8f-cc80-4c28-b312-f17e1de908b3",
+        "label": "Eventos"
+      },
+      {
+        "value": "Conhecido e/ou amigo que trabalha/ou na Framework Digital",
+        "id": "6a83a650-bf0c-4827-aecb-6879a31d49c5",
+        "label": "Conhecido e/ou amigo que trabalha/ou na Framework Digital"
+      },
+      {
+        "value": "Não conhecia a Framework Digital",
+        "id": "7fc07d61-d016-46ed-b662-b5fdf322ed70",
+        "label": "Não conhecia a Framework Digital"
+      }
+    ]
+  },
+  {
+    "tenantId": "frameworkdigital",
+    "options": [
+      {
+        "value": "Sim",
+        "id": "91ca9a2c-6ac5-42b0-886b-22d7761a2729",
+        "label": "Sim"
+      },
+      {
+        "value": "Não",
+        "id": "811c7018-3ef5-478e-a318-af1cb4333b79",
+        "label": "Não"
+      }
+    ],
+    "requiredIn": [],
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "id": "36564519-7214-46af-b02c-36b551dd170d",
+    "order": 2,
+    "conditions": [],
+    "updatedAt": "2025-06-17T19:52:35Z",
+    "createdAt": "2025-06-17T19:52:35Z",
+    "name": "O Candidato já conhecia a Framework?",
+    "type": "select",
+    "entity": "TALENTS",
+    "required": false
+  },
+  {
+    "name": "Tem fluência em algum idioma",
+    "tenantId": "frameworkdigital",
+    "id": "197ea7ce-979d-4aa9-9811-cb9a6257cef6",
+    "order": 1,
+    "createdAt": "2025-06-17T19:49:28Z",
+    "requiredIn": [],
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "conditions": [],
+    "updatedAt": "2025-11-11T16:36:35Z",
+    "entity": "TALENTS",
+    "required": false,
+    "type": "checkbox",
+    "options": [
+      {
+        "id": "70aeae6b-20b1-4c7a-a2c6-c6f2616c7b0a",
+        "label": "Sim",
+        "value": "Sim",
+        "order": 1
+      },
+      {
+        "id": "57d2530c-e57d-4ffe-9b60-711e58321ad4",
+        "label": "Não",
+        "value": "Não",
+        "order": 2
+      }
+    ]
+  }
+]

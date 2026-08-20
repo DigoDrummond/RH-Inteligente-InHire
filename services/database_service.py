@@ -43,6 +43,46 @@ class DatabaseService(IDatabaseService):
         self._talento_cache: Dict[str, int] = {}  # {inhire_id: db_id}
         self._cache_populated = False
 
+    @staticmethod
+    def _convert_custom_fields_to_dict(custom_fields: Any) -> Optional[Dict[str, Any]]:
+        """
+        Converte custom_fields da API para o formato de dicionário esperado.
+
+        A API pode retornar:
+        - Dict[str, Any]: Formato correto {field_id: [valores]}
+        - List[Dict]: Formato antigo [{"id": "field_id", "value": ["valores"]}]
+        - None: Sem custom fields
+
+        Returns:
+            Dict no formato {field_id: [valores]} ou None
+        """
+        if not custom_fields:
+            return None
+
+        # Se já é um dicionário, retornar como está
+        if isinstance(custom_fields, dict):
+            return custom_fields
+
+        # Se é uma lista, converter para dicionário
+        if isinstance(custom_fields, list):
+            result = {}
+            for field in custom_fields:
+                if isinstance(field, dict):
+                    field_id = field.get('id') or field.get('name')
+                    field_value = field.get('value', [])
+
+                    # Garantir que value é uma lista
+                    if not isinstance(field_value, list):
+                        field_value = [field_value] if field_value else []
+
+                    if field_id:
+                        result[field_id] = field_value
+
+            return result if result else None
+
+        # Formato desconhecido, retornar None
+        return None
+
     def populate_fk_cache(self) -> None:
         """
         Popula cache de FKs com todas as vagas e talentos do banco.
@@ -741,6 +781,10 @@ class DatabaseService(IDatabaseService):
                 existing.stage_metadata = self._serialize_pydantic_to_dict(cand_api.stage) if cand_api.stage else None
                 existing.phase_metadata = self._serialize_pydantic_to_dict(cand_api.phase) if cand_api.phase else None
 
+                # Migration 069: Custom fields responses (JOB_TALENTS)
+                if hasattr(cand_api, 'customFields') and cand_api.customFields:
+                    existing.custom_fields = self._convert_custom_fields_to_dict(cand_api.customFields)
+
                 if commit:
                     self.session.commit()
                 return False, 'updated'
@@ -779,7 +823,9 @@ class DatabaseService(IDatabaseService):
                 created_at=created_at,  # Definir explicitamente para respeitar constraint
                 # Migration 051: Metadados completos de stage e phase
                 stage_metadata=self._serialize_pydantic_to_dict(cand_api.stage) if cand_api.stage else None,
-                phase_metadata=self._serialize_pydantic_to_dict(cand_api.phase) if cand_api.phase else None
+                phase_metadata=self._serialize_pydantic_to_dict(cand_api.phase) if cand_api.phase else None,
+                # Migration 069: Custom fields responses (JOB_TALENTS)
+                custom_fields=self._convert_custom_fields_to_dict(cand_api.customFields) if hasattr(cand_api, 'customFields') else None
             )
 
             self.session.add(nova_cand)

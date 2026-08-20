@@ -1,0 +1,188 @@
+[
+  {
+    "createdAt": "2025-05-17T02:36:24Z",
+    "requiredIn": [],
+    "entity": "JOB_TALENTS",
+    "type": "checkbox",
+    "conditions": [],
+    "id": "1f50b961-7a55-4804-b9f9-20e0cbdb789b",
+    "order": 4,
+    "name": "Onde conheceu a Framework Digital?",
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "options": [
+      {
+        "value": "LinkedIN",
+        "id": "50ac4ece-b973-4e87-9b8f-c696859b6201",
+        "label": "LinkedIN"
+      },
+      {
+        "value": "Instagram",
+        "id": "6f4287d3-0b32-4353-aa37-f2c9b3b7dd42",
+        "label": "Instagram"
+      },
+      {
+        "value": "Google",
+        "id": "5f2062ff-1fe7-440c-a4c0-04bafcc1123b",
+        "label": "Google"
+      },
+      {
+        "value": "Instituições de Ensino",
+        "id": "3d7d0725-472f-4591-979d-d2c860385b5c",
+        "label": "Instituições de Ensino"
+      },
+      {
+        "value": "Eventos",
+        "id": "d18189d1-c644-4c07-b4c3-e60b3b4665c9",
+        "label": "Eventos"
+      },
+      {
+        "value": "Conhecido e/ou amigo que trabalha na empresa",
+        "id": "7f699d3d-553a-4747-a920-4b4231b89f67",
+        "label": "Conhecido e/ou amigo que trabalha na empresa"
+      },
+      {
+        "value": "Não conhecia a Framework Digital",
+        "id": "19cabacd-65b8-454d-914d-38f2d2a9b2fd",
+        "label": "Não conhecia a Framework Digital"
+      }
+    ],
+    "tenantId": "frameworkdigital",
+    "required": false,
+    "updatedAt": "2025-05-17T02:36:24Z"
+  },
+  {
+    "type": "select",
+    "showIn": [
+      "ADMISSION_MODAL",
+      "JOB_TALENT_MODAL"
+    ],
+    "updatedAt": "2025-05-06T19:07:44Z",
+    "order": 1,
+    "required": true,
+    "entity": "JOB_TALENTS",
+    "conditions": [],
+    "options": [
+      {
+        "value": "Não",
+        "id": "181878f6-a3be-4d8c-a18f-729c2ec7819c",
+        "label": "Não"
+      },
+      {
+        "value": "Sim",
+        "id": "23d5d409-8b14-4fc2-a64b-0e7037b36994",
+        "label": "Sim"
+      }
+    ],
+    "name": "É recrutamento interno?",
+    "id": "58401823-2cf5-4e0c-93eb-07c46508eb3a",
+    "tenantId": "frameworkdigital",
+    "requiredIn": [
+      "ADMISSION_MODAL"
+    ],
+    "createdAt": "2025-05-06T19:07:44Z"
+  },
+  {
+    "type": "select",
+    "name": "Modalidade de Contratação",
+    "showIn": [
+      "ADMISSION_MODAL",
+      "JOB_TALENT_MODAL"
+    ],
+    "required": true,
+    "entity": "JOB_TALENTS",
+    "conditions": [],
+    "updatedAt": "2025-05-06T19:35:08Z",
+    "createdAt": "2025-05-06T19:35:08Z",
+    "order": 2,
+    "tenantId": "frameworkdigital",
+    "requiredIn": [
+      "ADMISSION_MODAL"
+    ],
+    "id": "745c6a26-c3fa-4389-9b1e-75f54934c9ae",
+    "options": [
+      {
+        "value": "CLT Flex",
+        "id": "58744ea5-1fbe-4b7e-83c8-075d48d3fc07",
+        "label": "CLT Flex"
+      },
+      {
+        "value": "CLT Full",
+        "id": "3cf1e836-4b5d-4fad-bcd8-8016d47961d1",
+        "label": "CLT Full"
+      },
+      {
+        "value": "Estágio",
+        "id": "f19b07b4-4414-4cab-8e33-556aa8cf9e82",
+        "label": "Estágio"
+      },
+      {
+        "value": "PJ",
+        "id": "c253ced5-00b6-486a-b9cd-a11e5aebfb03",
+        "label": "PJ"
+      }
+    ]
+  },
+  {
+    "updatedAt": "2025-05-17T02:35:24Z",
+    "requiredIn": [],
+    "name": "Você conhecia a Framework Digital?",
+    "entity": "JOB_TALENTS",
+    "id": "55282edb-bb11-4445-8cd6-3c0c6b9ddb9a",
+    "type": "checkbox",
+    "conditions": [],
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "order": 3,
+    "tenantId": "frameworkdigital",
+    "required": false,
+    "options": [
+      {
+        "value": "Sim",
+        "id": "7bea56c4-4272-44e1-b45c-2cd567a49d3d",
+        "label": "Sim"
+      },
+      {
+        "value": "Não",
+        "id": "3c3ddaee-0a5a-49ab-91c3-f8882c5edd23",
+        "label": "Não"
+      }
+    ],
+    "createdAt": "2025-05-17T02:35:24Z"
+  },
+  {
+    "id": "32df9b88-d37a-4fd2-8c84-1403736c9419",
+    "requiredIn": [],
+    "updatedAt": "2025-06-17T20:16:14Z",
+    "entity": "JOB_TALENTS",
+    "type": "checkbox",
+    "conditions": [],
+    "showIn": [
+      "JOB_TALENT_MODAL"
+    ],
+    "options": [
+      {
+        "value": "Remoto",
+        "id": "660885eb-5e62-4546-9852-f50b0a4bcafb",
+        "label": "Remoto"
+      },
+      {
+        "value": "Híbrido",
+        "id": "3d4aeb7d-6262-444d-80b1-129c8e686aa0",
+        "label": "Híbrido"
+      },
+      {
+        "value": "Presencial",
+        "id": "63eb0948-0c7e-4c0b-b8c3-e41f0cbd34a9",
+        "label": "Presencial"
+      }
+    ],
+    "tenantId": "frameworkdigital",
+    "required": false,
+    "name": "Modalidade de Trabalho",
+    "createdAt": "2025-06-17T20:16:14Z",
+    "order": 5
+  }
+]
