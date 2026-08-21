@@ -88,7 +88,9 @@
       "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe\" -U postgres -d inhire -s --no-comments -f \"Backup_BD_Inhire/schema_exports/schema_completo_simplificado.sql\")",
       "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe\" -U postgres -d inhire -s --no-comments -f schema_completo.sql)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git merge reorganizacao-estrutura-projeto --no-ff -m \"$(cat <<''EOF''\nMerge branch ''reorganizacao-estrutura-projeto'' into main\n\nReorganização completa do projeto Inhire concluída.\n\n## Principais Mudanças\n- 68% de redução de arquivos na raiz (41 → 13)\n- 105 scripts organizados em categorias\n- 111 migrations organizadas (32 ativas, 79 arquivadas)\n- 7 diretórios legacy arquivados\n- Documentação completa reestruturada\n- READMEs criados para todas as pastas principais\n\n## Estatísticas\n- 324 arquivos modificados\n- 205 arquivos movidos/reorganizados\n- 80 scripts de debug arquivados\n- 100% de validações passando\n\n## Versão\nv2.3 (Reorganização Completa)\n\nGenerated with Claude Code\nhttps://claude.com/claude-code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
