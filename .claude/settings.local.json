@@ -170,7 +170,9 @@
       "Bash(\"C:\\Program Files\\PostgreSQL\\18\\bin\\psql.exe\" -U postgres -d inhire -c \"\n-- Query 4: Verificar duplicatas\nSELECT \n    COUNT(*) as total_ids_unicos,\n    (SELECT COUNT(*) FROM vw_relatorio_candidaturas) as total_linhas_view,\n    (SELECT COUNT(*) FROM vw_relatorio_candidaturas) - COUNT(*) as duplicatas\nFROM (SELECT DISTINCT id FROM vw_relatorio_candidaturas) AS unique_ids;\n\")",
       "Bash(tree:*)",
       "Bash(find:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(done)",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": []

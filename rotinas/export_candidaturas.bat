@@ -21,4 +21,7 @@ if errorlevel 1 (
 ) else (
     echo [%date% %time%] Export Candidaturas concluido com sucesso >> logs\rotinas.log
     echo Export Candidaturas concluido com sucesso
+
+    REM Enviar notificacao via Google Chat Webhook
+    python scripts\webhooks\send_candidaturas_webhook.py
 )
