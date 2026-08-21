@@ -1,46 +1,131 @@
-# Scripts Auxiliares
+# Scripts Inhire
 
-Esta pasta contém scripts auxiliares organizados por categoria.
+Diretório com scripts utilitários organizados por funcionalidade.
 
-## Estrutura
+## 📁 Estrutura
 
-### `/analise`
-Scripts para análise de dados e métricas:
-- `analise_contratacoes_pretensao.py` - Análise de contratações e pretensões salariais
-- `analise_funil_performance.py` - Análise de performance do funil
-- `analise_funil_simples.py` - Análise simplificada do funil
+### `/export` - Exportação para Google Sheets
+Scripts para exportar views do PostgreSQL para Google Sheets usando OAuth2.
 
-### `/debug`
-Scripts para debug e verificação:
-- `check_status.py` - Verificação de status geral
-- `check_vagas_status.py` - Verificação de status de vagas
-- `comparar_posicoes_abertas.py` - Comparação de posições abertas
-- `debug_posicoes.py` - Debug de posições
-- `verificar_contratacoes_salario.py` - Verificação de contratações e salários
-- `verificar_custom_fields.py` - Verificação de custom fields
-- `verificar_indicacoes.py` - Verificação de indicações
-- `listar_custom_fields_disponiveis.py` - Lista custom fields disponíveis
-- `testar_api_custom_fields.py` - Testa API de custom fields
-- `sync_custom_fields_only.py` - Sincroniza apenas custom fields
+**Scripts principais:**
+- `export_analise_posicoes.py` - Exporta vw_analise_posicoes (1.383 registros)
+- `export_dados_jade.py` - Exporta vw_dados_jade (dados customizados)
+- `export_funil_performance.py` - Exporta vw_funil_performance (85k+ registros)
+- `export_relatorio_candidaturas.py` - Exporta vw_relatorio_candidaturas (35k+ registros)
 
-### `/export`
-Scripts para exportação de dados:
-- `export_posicoes_atualizado.py` - Exporta posições atualizadas
-- `export_to_sheets.py` - Exporta dados para Google Sheets
-- `extrair_contratacoes_pretensao_final.py` - Extrai dados finais de contratações
-- `update_exports.py` - Atualiza todos os exports
-
-## Uso
-
-Todos os scripts devem ser executados a partir da raiz do projeto:
-
+**Uso:**
 ```bash
-python scripts/analise/analise_funil_simples.py
-python scripts/debug/debug_posicoes.py
-python scripts/export/update_exports.py
+python scripts/export/export_analise_posicoes.py
 ```
 
-## Nota
+---
 
-Estes scripts são auxiliares e não fazem parte do fluxo principal de sincronização.
-Para sincronização, use `run_sync.py` na raiz do projeto.
+### `/sync` - Sincronização API Inhire
+Scripts especializados de sincronização.
+
+**Scripts principais:**
+- `sync_talent_pool.py` - Sincroniza talentos SEM candidaturas (~470 talentos)
+
+**Nota:** Sincronizações principais estão em `run_sync.py` (raiz) e `sync_incremental_completo.py` (raiz).
+
+---
+
+### `/webhooks` - Notificações Google Chat
+Scripts para enviar notificações via webhook.
+
+**Scripts principais:**
+- `send_candidaturas_webhook.py` - Notifica após export de candidaturas
+
+**Uso:**
+```bash
+python scripts/webhooks/send_candidaturas_webhook.py
+```
+
+---
+
+### `/monitoring` - Monitoramento e Métricas
+Scripts para monitoramento do sistema.
+
+**Scripts principais:**
+- `metrics_server.py` - Servidor Prometheus de métricas
+
+**Uso:**
+```bash
+python scripts/monitoring/metrics_server.py
+```
+
+---
+
+### `/migration` - Gerenciamento de Migrations
+Scripts para executar migrations SQL.
+
+**Scripts principais:**
+- `run_migrations_direct.py` - Executa migrations via psycopg2
+
+**Uso:**
+```bash
+python scripts/migration/run_migrations_direct.py
+```
+
+---
+
+### `/analise` - Análises de Dados
+Scripts de análise e geração de relatórios.
+
+**Scripts principais:**
+- `analise_funil_performance.py` - Análise de funil de candidaturas
+- `analise_contratacoes_pretensao.py` - Análise de contratações vs pretensão
+
+---
+
+### `/backup` - Backup de Dados
+Scripts de backup do banco de dados.
+
+---
+
+### `/cleanup` - Limpeza e Manutenção
+Scripts de manutenção do banco.
+
+**Scripts principais:**
+- `deduplicate_position_timeline.py` - Remove duplicatas na timeline
+
+---
+
+### `/validacao` - Validações e Testes
+Scripts de validação de dados e integridade.
+
+---
+
+### `/debug` - Debug e Troubleshooting
+
+**IMPORTANTE:** Diretório deve estar vazio em produção.
+
+**Subpasta:**
+- `/archive_2026-08/` - Scripts de debug arquivados (80 arquivos)
+
+---
+
+## 🔧 Convenções
+
+- Scripts Python seguem snake_case
+- Cada script deve ter docstring explicativa
+- Logs salvos em `logs/` (raiz do projeto)
+- Credenciais via `.env` (nunca hardcoded)
+
+---
+
+## 📝 Uso Geral
+
+Para executar qualquer script:
+
+```bash
+# Da raiz do projeto
+python scripts/<categoria>/<script>.py
+
+# Exemplo
+python scripts/export/export_analise_posicoes.py
+```
+
+---
+
+**Última atualização:** 2026-08-21

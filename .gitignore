@@ -96,31 +96,23 @@ Thumbs.db
 inhire-api-client/
 api_endpoints_*.json
 documentacao_completa.pdf
-exports_analise/
-analise_inhire/
-campos_personalizados/
 
-# Tests and Debug
-tests/
-scripts/debug/
-scripts/analise/
-scripts/export/
-*test*.py
-*debug*.py
-*investigar*.py
-*verificar*.py
-*validar*.py
-*aplicar_migration*.py
-*testar*.py
-*comparar*.py
-*check*.py
+# Legacy directories (archived)
+archive_legacy/
 
-# Documentation archives
-docs/archive/
-docs/reports/
-docs/changelogs/
+# Debug archives
+scripts/debug/archive_*/
 
-# Migration backups
+# Migration archives
+migrations/applied_2024-2025/
+migrations/obsolete_iterations/
 migrations/*backup*
 *.py.backup*
 *.sql.backup*
+
+# Data Science (large dataset/models)
+data_science/venv/
+data_science/data/*.csv
+data_science/data/*.parquet
+data_science/models/*.pkl
+data_science/models/*.h5

@@ -368,6 +368,9 @@ class Candidatura(Base):
     stage_metadata = Column(JSON)
     phase_metadata = Column(JSON)
 
+    # Custom Fields (Migration 069)
+    custom_fields = Column(JSON)
+
     # Auditoria
     updated_at_inhire = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

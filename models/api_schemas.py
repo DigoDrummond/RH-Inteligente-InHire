@@ -179,6 +179,7 @@ class CandidaturaAPI(BaseModel):
     userId: Optional[str] = None
     userName: Optional[str] = None
     updatedAt: Optional[datetime] = None
+    customFields: Optional[Any] = None  # Migration 069: Custom fields (API retorna List[Dict] OU Dict)
 
     class Config:
         json_encoders = {
